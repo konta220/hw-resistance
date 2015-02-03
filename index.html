@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>SEP Disassembler</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+
+        <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+
+        <script>
+            $(function () {
+                $("#sep3decoder textarea").each(function () {
+                    $(this).bind('keyup', getText(this));
+                });
+
+                function getText(elm) {
+                    var v, old = elm.value;
+                    return function () {
+                        v = elm.value;
+                        if (old !== v) {
+                            old = v;
+                            var str = $(this).val();
+                            parce(str);
+                        }
+                    };
+                }
+
+                var OP_Code =
+                        {"SEP": [{"No": "0", "命令名": "HLT", "命令": "ホルト（停止）", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0000", "OP_下位ビット": "00", "ニモニック": "HLT", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "1", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0000", "OP_下位ビット": "01", "ニモニック": "－", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "2", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0000", "OP_下位ビット": "10", "ニモニック": "－", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "3", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0000", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "4", "命令名": "CLR", "命令": "クリア", "N": "0", "Z": "1", "V": "0", "C": "0", "OP_上位ビット": "0001", "OP_下位ビット": "00", "ニモニック": "CLR T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "5", "命令名": "「INC」", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0001", "OP_下位ビット": "01", "ニモニック": "－", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "－"}, {"No": "6", "命令名": "「DEC」", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0001", "OP_下位ビット": "10", "ニモニック": "－", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "－"}, {"No": "7", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0001", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "－"}, {"No": "8", "命令名": "ASL", "命令": "算術左シフト", "N": "＊", "Z": "＊", "V": "＊", "C": "＊", "OP_上位ビット": "0010", "OP_下位ビット": "00", "ニモニック": "ASL T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "9", "命令名": "ASR", "命令": "算術右シフト", "N": "＊", "Z": "＊", "V": "0", "C": "＊", "OP_上位ビット": "0010", "OP_下位ビット": "01", "ニモニック": "ASR T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "10", "命令名": "（RLC）", "命令": "キャリー付左回転シフト", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0010", "OP_下位ビット": "10", "ニモニック": "RLC T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "11", "命令名": "（RRC）", "命令": "キャリー付右回転シフト", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0010", "OP_下位ビット": "11", "ニモニック": "RRC T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "12", "命令名": "LSL", "命令": "論理左シフト", "N": "＊", "Z": "＊", "V": "0", "C": "＊", "OP_上位ビット": "0011", "OP_下位ビット": "00", "ニモニック": "LSL T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "13", "命令名": "LSR", "命令": "論理右シフト", "N": "＊", "Z": "＊", "V": "0", "C": "＊", "OP_上位ビット": "0011", "OP_下位ビット": "01", "ニモニック": "LSR T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "14", "命令名": "ROL", "命令": "左回転シフト", "N": "＊", "Z": "＊", "V": "0", "C": "＊", "OP_上位ビット": "0011", "OP_下位ビット": "10", "ニモニック": "ROL T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "15", "命令名": "ROR", "命令": "右回転シフト", "N": "＊", "Z": "＊", "V": "0", "C": "＊", "OP_上位ビット": "0011", "OP_下位ビット": "11", "ニモニック": "ROR T", "OP_Fromオペランド": "00000", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "O"}, {"No": "16", "命令名": "MOV", "命令": "データ転送", "N": "＊", "Z": "＊", "V": "0", "C": "－", "OP_上位ビット": "0100", "OP_下位ビット": "00", "ニモニック": "MOV F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "17", "命令名": "JMP", "命令": "絶対アドレス指定無条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0100", "OP_下位ビット": "01", "ニモニック": "JMP F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "18", "命令名": "RET", "命令": "リターン", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0100", "OP_下位ビット": "10", "ニモニック": "RET", "OP_Fromオペランド": "10110", "OP_Toオペランド": "00111", "FromOP": "－", "ToOP": "－"}, {"No": "19", "命令名": "RIT", "命令": "割り込み復帰", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0100", "OP_下位ビット": "11", "ニモニック": "RIT", "OP_Fromオペランド": "10110", "OP_Toオペランド": "00111", "FromOP": "－", "ToOP": "－"}, {"No": "20", "命令名": "ADD", "命令": "加算", "N": "＊", "Z": "＊", "V": "＊", "C": "＊", "OP_上位ビット": "0101", "OP_下位ビット": "00", "ニモニック": "ADD F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "21", "命令名": "RJP", "命令": "相対アドレス指定無条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0101", "OP_下位ビット": "01", "ニモニック": "RJP F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "22", "命令名": "（ADC）", "命令": "キャリー付加算（T+F+C=T）", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0101", "OP_下位ビット": "10", "ニモニック": "ADC F, T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "23", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0101", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "－", "ToOP": "－"}, {"No": "24", "命令名": "SUB", "命令": "減算（T-F=T）", "N": "＊", "Z": "＊", "V": "＊", "C": "＊", "OP_上位ビット": "0110", "OP_下位ビット": "00", "ニモニック": "SUB F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "25", "命令名": "「RJB」", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0110", "OP_下位ビット": "01", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "26", "命令名": "（SBC）", "命令": "キャリー付減算（T-F-C=T）", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0110", "OP_下位ビット": "10", "ニモニック": "SBC F，T", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "O"}, {"No": "27", "命令名": "CMP", "命令": "比較", "N": "＊", "Z": "＊", "V": "＊", "C": "＊", "OP_上位ビット": "0110", "OP_下位ビット": "11", "ニモニック": "CMP F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "28", "命令名": "NOP", "命令": "無操作命令", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0111", "OP_下位ビット": "00", "ニモニック": "NOP", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "29", "命令名": "NOP", "命令": "無操作命令", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0111", "OP_下位ビット": "01", "ニモニック": "NOP", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "30", "命令名": "NOP", "命令": "無操作命令", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0111", "OP_下位ビット": "10", "ニモニック": "NOP", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "31", "命令名": "NOP", "命令": "無操作命令", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "0111", "OP_下位ビット": "11", "ニモニック": "NOP", "OP_Fromオペランド": "00000", "OP_Toオペランド": "00000", "FromOP": "－", "ToOP": "－"}, {"No": "32", "命令名": "OR", "命令": "論理和", "N": "＊", "Z": "＊", "V": "0", "C": "－", "OP_上位ビット": "1000", "OP_下位ビット": "00", "ニモニック": "OR F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "33", "命令名": "XOR", "命令": "排他的論理和", "N": "＊", "Z": "＊", "V": "0", "C": "－", "OP_上位ビット": "1000", "OP_下位ビット": "01", "ニモニック": "XOR F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "34", "命令名": "AND", "命令": "論理積", "N": "＊", "Z": "＊", "V": "0", "C": "－", "OP_上位ビット": "1000", "OP_下位ビット": "10", "ニモニック": "AND F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "35", "命令名": "BIT", "命令": "ビットテスト", "N": "＊", "Z": "＊", "V": "0", "C": "－", "OP_上位ビット": "1000", "OP_下位ビット": "11", "ニモニック": "BIT F，T", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "xxxxx", "FromOP": "O", "ToOP": "O"}, {"No": "36", "命令名": "「MUL」", "命令": "乗算（TxF=（MSB）T+1，（LSB）T）", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1001", "OP_下位ビット": "00", "ニモニック": "MUL F，T", "OP_Fromオペランド": "00xxx", "OP_Toオペランド": "00xxx", "FromOP": "O", "ToOP": "O"}, {"No": "37", "命令名": "「DIV」", "命令": "除算（TxF=（商）T，（余り）T+1）", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1001", "OP_下位ビット": "01", "ニモニック": "DIV F，T", "OP_Fromオペランド": "00xxx", "OP_Toオペランド": "00xxx", "FromOP": "O", "ToOP": "O"}, {"No": "38", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1001", "OP_下位ビット": "10", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "39", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1001", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "40", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1010", "OP_下位ビット": "00", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "41", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1010", "OP_下位ビット": "01", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "42", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1010", "OP_下位ビット": "10", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "43", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1010", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "44", "命令名": "JSR", "命令": "絶対アドレス指定サブルーチンコール", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1011", "OP_下位ビット": "00", "ニモニック": "JSR F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "11110", "FromOP": "O", "ToOP": "－"}, {"No": "45", "命令名": "RJS", "命令": "相対アドレス指定サブルーチンコール", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1011", "OP_下位ビット": "01", "ニモニック": "RJS F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "11110", "FromOP": "O", "ToOP": "－"}, {"No": "46", "命令名": "SVC", "命令": "スーパーバイザコール", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1011", "OP_下位ビット": "10", "ニモニック": "SVC", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "11110", "FromOP": "－", "ToOP": "－"}, {"No": "47", "命令名": "－", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1011", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "－", "ToOP": "－"}, {"No": "48", "命令名": "BRN", "命令": "Nフラグ_絶対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1100", "OP_下位ビット": "00", "ニモニック": "BRN F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "49", "命令名": "BRZ", "命令": "Zフラグ_絶対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1100", "OP_下位ビット": "01", "ニモニック": "BRZ F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "50", "命令名": "BRV", "命令": "Vフラグ_絶対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1100", "OP_下位ビット": "10", "ニモニック": "BRV F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "51", "命令名": "BRC", "命令": "Cフラグ_絶対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1100", "OP_下位ビット": "11", "ニモニック": "BRC F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "52", "命令名": "（BNN）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1101", "OP_下位ビット": "00", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "53", "命令名": "（BNZ）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1101", "OP_下位ビット": "01", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "54", "命令名": "（BNV）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1101", "OP_下位ビット": "10", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "55", "命令名": "（BNC）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1101", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "56", "命令名": "RBN", "命令": "Nフラグ_相対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1110", "OP_下位ビット": "00", "ニモニック": "RBN F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "57", "命令名": "RBZ", "命令": "Zフラグ_相対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1110", "OP_下位ビット": "01", "ニモニック": "RBZ F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "58", "命令名": "RBV", "命令": "Vフラグ_相対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1110", "OP_下位ビット": "10", "ニモニック": "RBV F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "59", "命令名": "RBC", "命令": "Cフラグ_相対アドレス指定条件分岐", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1110", "OP_下位ビット": "11", "ニモニック": "RBC F", "OP_Fromオペランド": "xxxxx", "OP_Toオペランド": "00111", "FromOP": "O", "ToOP": "－"}, {"No": "60", "命令名": "（RNN）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1111", "OP_下位ビット": "00", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "61", "命令名": "（RNZ）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1111", "OP_下位ビット": "01", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "62", "命令名": "（RNV）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1111", "OP_下位ビット": "10", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}, {"No": "63", "命令名": "（RNC）", "命令": "－", "N": "－", "Z": "－", "V": "－", "C": "－", "OP_上位ビット": "1111", "OP_下位ビット": "11", "ニモニック": "－", "OP_Fromオペランド": "－", "OP_Toオペランド": "－", "FromOP": "O", "ToOP": "－"}]};
+
+                var OP_Addressing = {"アドレシング": [{"名称": "レジスタ", "表記": "Rx"}, {"名称": "レジスタ間接", "表記": "(Rx)"},
+                        {"名称": "プレデクリメント・レジスタ間接", "表記": "-(Rx)"}, {"名称": "ポストインクリメント・レジスタ間接", "表記": "(Rx)+"}]};
+
+                var op_Code = function (code) {
+                    this.code = getOP_Code(code);
+                    this.info = OP_Code["SEP"][parseInt(this.code, 2)];
+                    this.toExplainString = this.info["命令名"];
+                };
+                var from_Code = function (code) {
+                    this.code = getFromOP_Addressing(code);
+                    this.addressing = parseInt(this.code.substr(0, 2), 2);
+                    this.register = parseInt(this.code.substr(2, 5), 2);
+                    this.toExplainString = OP_Addressing["アドレシング"][this.addressing]["表記"];
+                    this.toExplainString = this.toExplainString.replace('x', this.register);
+                };
+                var to_Code = function (code) {
+                    this.code = getToOP_Addressing(code);
+                    this.addressing = parseInt(this.code.substr(0, 2), 2);
+                    this.register = parseInt(this.code.substr(2, 5), 2);
+                    this.toExplainString = OP_Addressing["アドレシング"][this.addressing]["表記"];
+                    this.toExplainString = this.toExplainString.replace('x', this.register);
+                };
+
+                var binaryCode = function (code) {
+                    this.op = new op_Code(code);
+                    this.from = new from_Code(code);
+                    this.to = new to_Code(code);
+                    this.toExplainString = this.op.code + ' ' + this.from.code + ' ' + this.to.code;
+                    this.toExplainBinary = ('0000' + parseInt(code[0], 16).toString(2)).slice(-4) + ' '
+                            + ('0000' + parseInt(code[1], 16).toString(2)).slice(-4) + ' '
+                            + ('0000' + parseInt(code[2], 16).toString(2)).slice(-4) + ' '
+                            + ('0000' + parseInt(code[3], 16).toString(2)).slice(-4);
+
+                    this.decode = (this.op.toExplainString === "－" ? '.WORD ' + code + ' ; 1ワード確保' : this.op.toExplainString + ' '
+                            + ((this.op.info["FromOP"] === "O") ? (this.from.toExplainString) : (''))
+                            + ((this.op.info["FromOP"] === "O") && (this.op.info["ToOP"] === "O") ? (', ') : (''))
+                            + ((this.op.info["ToOP"] === "O") ? (this.to.toExplainString) : ('')));
+
+                    this.isImidiate = (((this.from.toExplainString === "(R7)+") || (this.to.toExplainString === "(R7)+")) ? true : false);
+                };
+
+                var binaryToken = function (address, code, memo) {
+                    this.address = (isNaN(parseInt(address, 16))) ? '0' : parseInt(address, 16).toString(16);
+                    this.address = ('0000' + this.address).slice(-4).toString().toUpperCase();
+                    this.code = (isNaN(parseInt(code, 16))) ? '0' : parseInt(code, 16).toString(16);
+                    this.code = ('0000' + this.code).slice(-4).toString().toUpperCase();
+                    this.memo = (memo === undefined) ? " " : "; " + memo;
+                    this.binary = new binaryCode(this.code); //this.code
+                    this.decode = this.binary.decode;
+                    this.toExplainString = this.address + ":  " + this.code;
+
+                    this.imidiate = this.decode;//(R7)+を置換
+                    this.isImidiateValue = false;
+
+                    this.tbody = '<tr><td>' + this.address + '</td><td>' + this.code + '</td><td>'
+                            + this.binary.decode + '</td><td>' + this.memo + '</td></tr>';
+
+                    this.ImidiateTbody = '<tr><td>' + this.address + '</td><td>' + this.code + '</td><td></td><td>' + this.memo + '</td></tr>';
+                };
+
+                function setImidiate(binaryToken, num) {
+                    binaryToken.imidiate = binaryToken.decode.replace('(R7)+', ('#0x' + num));
+                    binaryToken.tbody = '<tr><td>' + binaryToken.address + '</td><td>' + binaryToken.code + '</td><td>'
+                            + binaryToken.imidiate + '</td><td>' + binaryToken.memo + '</td></tr>';
+
+                    return binaryToken;
+                }
+
+
+                function parce(text) {
+                    text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').replace(/\n+/g, '\n');
+                    var lines = text.split('\n');
+                    var length = lines.length;
+
+                    var arrayCode = [];
+                    //parce1
+                    for (var i = 0; i < length; i++) {
+                        var comment = lines[i].split(';');
+                        var binaryComment = comment[0].split(':');
+                        if (binaryComment[1] === undefined) {
+                            binaryComment[1] = binaryComment[0];
+                            binaryComment[0] = "0";
+                        }
+                        arrayCode.push(new binaryToken(binaryComment[0], binaryComment[1], comment[1]));
+                    }
+
+                    //parce2
+                    var currentToken;
+                    var beforeToken = new binaryToken("0000", "0000", "");
+                    var imidiateAddressing = false;
+
+                    for (var i = 0; i < length; i++) {
+                        currentToken = arrayCode[i];
+                        if (imidiateAddressing) {
+                            beforeToken = setImidiate(beforeToken, currentToken.code);
+                            currentToken.tbody = currentToken.ImidiateTbody;
+                            currentToken.isImidiateValue = true;
+
+                            arrayCode[i - 1] = beforeToken;
+                            arrayCode[i] = currentToken;
+                            imidiateAddressing = false;
+                        } else {
+                            beforeToken = currentToken; //set
+                            if ((i + 1 < length) && (currentToken.binary.isImidiate)) {
+                                imidiateAddressing = true;
+                                continue;
+                            }
+                            arrayCode[i] = currentToken;
+                        }
+                    }
+
+                    var viewCode = "";
+
+                    //codeGen
+                    var token;
+                    for (var i = 0; i < length; i++) {
+                        token = arrayCode[i];
+                        viewCode += token.tbody;
+                    }
+                    viewText(viewCode);
+                }
+
+                function getOP_Code(code) {
+                    var opNum = parseInt((parseInt(code, 16) / 1024), 10);
+                    return ('000000' + opNum.toString(2)).slice(-6);
+                }
+
+                function getFromOP_Addressing(code) {
+                    var opNum = parseInt(((parseInt(code, 16) % 1024)) / 32, 10);
+                    return ('00000' + opNum.toString(2)).slice(-5);
+                }
+
+                function getToOP_Addressing(code) {
+                    var opNum = parseInt(((parseInt(code, 16) % 1024)) % 32, 10);
+                    return ('00000' + opNum.toString(2)).slice(-5);
+                }
+
+                /*================================================
+                 ファイルをドロップした時の処理
+                 =================================================*/
+                $('#drag-area').bind('drop', function (e) {
+                    // デフォルトの挙動を停止
+                    e.preventDefault();
+                    // ファイル情報を取得
+                    var files = e.originalEvent.dataTransfer.files;
+
+                    uploadFiles(files);
+                }).bind('dragenter', function () {
+                    // デフォルトの挙動を停止
+                    return false;
+                }).bind('dragover', function () {
+                    // デフォルトの挙動を停止
+                    return false;
+                });
+
+
+                function resetTable() {
+                    $("#result tbody").remove();
+                }
+
+
+                function viewText(str) {
+                    resetTable();
+                    $("#result").append(str);//#sep3decoder div
+                }
+
+                function setTextBox(str) {
+                    $("#sep3decoder textarea").text(str);
+                }
+
+                /*================================================
+                 アップロード処理
+                 =================================================*/
+                function uploadFiles(files) {
+                    if (window.File) {
+                        // 指定されたファイルを取得
+                        var input = files[0];
+                        // ファイル読み込みの準備
+                        var reader = new FileReader();
+                        // ファイルの読み込みに成功したら、その内容を反映
+                        reader.addEventListener('load', function (e) {
+                            var readText;
+                            var startWith = reader.result.search("CONTENT BEGIN");
+                            startWith = ((startWith === -1) ? 0 : (startWith + 15));
+                            readText = reader.result.slice(startWith);
+
+                            var endWith = readText.search("END;");
+                            if (endWith !== -1) {
+                                readText = readText.slice(0, endWith - 2);
+                            }
+
+                            setTextBox(readText);
+                            parce(readText);
+                        }, true);
+                        // ファイルの内容をテキストとして取得
+                        reader.readAsText(input, 'UTF-8');
+                    }
+                }
+
+                $("#drag-area input").bind("change", function () {
+                    var files = this.files;
+                    uploadFiles(files);
+                    return;
+                });
+
+                function textSave(name, text) {
+
+                    var blob = new Blob([text], {type: 'text/plain'});
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = name;
+                    document.body.appendChild(link); // for Firefox
+                    link.click();
+                    document.body.removeChild(link); // for Firefox
+                }
+
+                var dateText = function (date, simple) {
+                    this.toExplainString = date;
+                    this.simple = simple;
+                }
+
+                function getDate() {
+                    myTbl = new Array("SUN", "MON", "TUE", "WED", "THR", "FRI", "SAT");
+                    myD = new Date();
+
+                    myYear = myD.getFullYear();
+                    myMonth = (("0" + myD.getMonth() + 1).slice(-2));
+                    myDate = (("0" + myD.getDate()).slice(-2));
+                    myDay = myD.getDay();
+                    myHours = (("0" + myD.getHours()).slice(-2));
+                    myMinutes = (("0" + myD.getMinutes()).slice(-2));
+                    mySeconds = (("0" + myD.getSeconds()).slice(-2));
+
+                    myMess1 = myYear + ' ' + myMonth + "/" + myDate;
+                    myMess2 = "[" + myTbl[myDay] + "]";
+                    myMess3 = myHours + ":" + myMinutes + ":" + mySeconds;
+                    myMess = myMess1 + " " + myMess2 + " " + myMess3;
+
+                    return new dateText(myMess, myYear + '_' + myMonth + myDate + '_' + myHours + myMinutes + mySeconds);
+                }
+
+                function download() {
+                    var data = [];
+                    var tr = $("table tr");//全行を取得
+                    for (var i = 0, l = tr.length; i < l; i++) {
+                        var cells = tr.eq(i).children();//1行目から順にth、td問わず列を取得
+                        for (var j = 0, m = cells.length; j < m; j++) {
+                            if (typeof data[i] === "undefined") {
+                                data[i] = [];
+                            }
+                            data[i][j] = cells.eq(j).text();//i行目j列の文字列を取得
+                        }
+                    }
+
+                    var today = getDate();
+
+                    var text = ';; ' + today.toExplainString + '\r\n\r\n';
+                    var address = -2;
+                    var length = data.length;
+                    for (var i = 1; i < length; i++) {
+                        var instLine = data[i];
+
+                        //SET START ADDRESS
+                        if (parseInt(address, 16) + 1 !== parseInt(instLine[0], 16)) {
+                            address = instLine[0];
+                            if (i !== 1) {
+                                text += "\r\n";
+                            }
+                            text += "\t.=0x" + address + "\r\n";
+                        } else {
+                            address = instLine[0];
+                        }
+
+                        //SET INST LINE
+                        if (instLine[2].length !== 0) {
+                            if ((instLine[2][0] === "（") || (instLine[2][0] === "「")) {
+                                text += "\t.WORD 0x" + instLine[1] + " ;";
+                            }
+                            text += "\t" + instLine[2];
+                            text += "\r\n";
+                        }
+                    }
+
+                    textSave(today.simple + '.s', text);
+                }
+
+                $('#sep3decoder button').on('click', function (event) {
+                    download();
+                });
+
+            });
+
+        </script>
+    </head>
+
+    <body>
+        <section class="container">
+            <div id="row">
+                <div id="drag-area" class="col-md-10 col-md-offset-1">
+                    <div id="row">
+                        <h1>SEP Disassembler</h1>
+                        <p>個人の独断であり，所属する組織の公式内容ではありません．<BR>
+                            SEPの逆アセンブラは，単位についての保障は致しかねますので，予めご了承ください．</p>
+                        <BR>
+                        <div id="row">
+                            <div class="col-md-12 well">
+                                <p class="text-center">「.binファイル」 または 「.mifファイル」をドロップ
+                                </p>
+                                <input id="inFile" type="file">
+                            </div>
+                        </div>
+                        <div id="row">
+                            <div id="sep3decoder">
+                                <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+                                    <p>アドレス(16進) : 命令コード(16進)</p>
+                                    <div id="row">
+                                        <textarea  placeholder="0020:403E ; Sample" class="col-lg-12 col-md-12 col-sm-12 col-xs-12 input-lg" rows = "10" value="input-lg"></textarea>
+                                    </div>
+                                </div>
+                                <BR>
+                                <div class="col-lg-6 col-lg-offset-1 col-md-6 col-md-offset-1 col-sm-6 col-sm-offset-1 col-xs-12">
+                                    <div id="row">
+                                        <div class="">
+                                            <button type="button" class="btn btn-default col-lg-12 col-md-12 col-sm-12 col-xs-12">アセンブリファイルのダウンロード</button>
+                                        </div>
+                                    </div>
+                                    <table id="result" class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>アドレス</th>
+                                                <th>機械語</th>
+                                                <th>命令</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>0200</td><td>403E</td><td>MOV R1, (R6)+</td><td>;Sample</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <BR>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <BR>
+                </section>
+                </body>
+                </html>
