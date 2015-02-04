@@ -76,7 +76,7 @@ and open the template in the editor.
                             + ((this.op.info["FromOP"] === "O") && (this.op.info["ToOP"] === "O") ? (', ') : (''))
                             + ((this.op.info["ToOP"] === "O") ? (this.to.toExplainString) : ('')));
 
-                    this.isImidiate = (((this.from.toExplainString === "(R7)+") || (this.to.toExplainString === "(R7)+")) ? true : false);
+                    this.isImidiate = (this.decode.search('(R7)\+') !== -1 ? true : false);
                 };
 
                 var binaryToken = function (address, code, memo) {
